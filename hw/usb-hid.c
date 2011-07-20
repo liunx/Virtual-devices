@@ -68,6 +68,8 @@ typedef struct USBKeyboardState {
     uint8_t leds;
     uint8_t key[16];
     int32_t keys;
+    /* add a member just for a test */
+    int32_t test;
 } USBKeyboardState;
 
 typedef struct USBHIDState {
@@ -676,6 +678,8 @@ static void usb_keyboard_event(void *opaque, int keycode)
     slot = (hs->head + hs->n) & QUEUE_MASK; hs->n++;
     s->keycodes[slot] = keycode;
     usb_hid_changed(hs);
+    /* setting test member */
+    s->test = 123456;
 }
 
 static void usb_keyboard_process_keycode(USBHIDState *hs)

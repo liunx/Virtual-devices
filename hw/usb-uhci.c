@@ -809,6 +809,10 @@ static int uhci_handle_td(UHCIState *s, uint32_t addr, UHCI_TD *td, uint32_t *in
     max_len = ((td->token >> 21) + 1) & 0x7ff;
     pid = td->token & 0xff;
 
+    /*
+     * PID	ADDR	ENDP	CRC5
+     * 8	7	4	5
+     */
     async->packet.pid     = pid;
     async->packet.devaddr = (td->token >> 8) & 0x7f;
     async->packet.devep   = (td->token >> 15) & 0xf;
