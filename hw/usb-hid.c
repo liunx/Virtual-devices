@@ -72,11 +72,23 @@ typedef struct USBKeyboardState {
     int32_t test;
 } USBKeyboardState;
 
+/*
+ * Joystick status
+ */
+typedef struct USBJoystickState {
+    uint32_t keycodes[QUEUE_LENGTH];
+    uint16_t modifiers;
+    uint8_t leds;
+    uint8_t key[16];
+    int32_t keys;
+} USBJoystickState;
+
 typedef struct USBHIDState {
     USBDevice dev;
     union {
         USBMouseState ptr;
         USBKeyboardState kbd;
+ 	USBJoystickState js;
     };
     uint32_t head; /* index into circular queue */
     uint32_t n;
@@ -155,7 +167,8 @@ static const USBDescIface desc_iface_joystick = {
     .bInterfaceNumber              = 0,
     .bNumEndpoints                 = 1,
     .bInterfaceClass               = USB_CLASS_HID,
-    .bInterfaceProtocol            = 0x04,
+    .bInterfaceSubClass            = 0x01, /* boot */
+    .bInterfaceProtocol            = 0x01,
     .ndesc                         = 1,
     .descs = (USBDescOther[]) {
         {
@@ -167,7 +180,7 @@ static const USBDescIface desc_iface_joystick = {
                 0x00,          /*  u8  country_code */
                 0x01,          /*  u8  num_descriptors */
                 USB_DT_REPORT, /*  u8  type: Report */
-                52, 0,         /*  u16 len */
+                0x3f, 0,         /*  u16 len */
             },
         },
     },
@@ -175,7 +188,7 @@ static const USBDescIface desc_iface_joystick = {
         {
             .bEndpointAddress      = USB_DIR_IN | 0x01,
             .bmAttributes          = USB_ENDPOINT_XFER_INT,
-            .wMaxPacketSize        = 4,
+            .wMaxPacketSize        = 8,
             .bInterval             = 0x0a,
         },
     },
@@ -414,33 +427,68 @@ static const uint8_t qemu_mouse_hid_report_descriptor[] = {
     0xc0,		/* End Collection */
 };
 
+//static const uint8_t qemu_joystick_hid_report_descriptor[] = {
+//    0x05, 0x01,		/* Usage Page (Generic Desktop) */
+//    0x09, 0x04,		/* Usage (Joystick) */
+//    0xa1, 0x01,		/* Collection (Application) */
+//    0x05, 0x02,		/* Usage Page (Simulation Controls) */
+//    0x09, 0xBB,		/*   Usage (Throttle) */
+//    0x15, 0x81,		/*     Logical Minimum (-127) */
+//    0x25, 0x7F,		/*     Logical Maximum (127) */
+//    0x95, 0x03,		/*     Report Count (1) */
+//    0x75, 0x01,		/*     Report Size (8) */
+//    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
+//    0x05, 0x01,		/*     Usage Page (Generic Desktop) */
+//    0x09, 0x01,		/*     Usage (Point) */
+//    0xa0, 0x01,		/*   Collection (Physical) */
+//    0x09, 0x30,		/*     Usage (X) */
+//    0x09, 0x31,		/*     Usage (Y) */
+//    0x95, 0x02,		/*     Report Count (2) */
+//    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
+//    0xc0,		/*   End Collection */
+//    0x09, 0x39,		/* Usage (Switch Hat) */
+//    0x15, 0x00,		/*     Logical Minimum (0) */
+//    0x25, 0x03,		/*     Logical Maximum (3) */
+//    0x35, 0x00,		/*     Physical Minimum (0) */
+//    0x46, 0x7F,		/*     Physical Maximum (270) */
+//    0x75, 0x08,		/*     Report Size (8) */
+//    0x95, 0x03,		/*     Report Count (3) */
+//    0x81, 0x06,		/*     Input (Data, Variable, Relative) */
+//    0xc0,		/* End Collection */
+//};
+
 static const uint8_t qemu_joystick_hid_report_descriptor[] = {
     0x05, 0x01,		/* Usage Page (Generic Desktop) */
-    0x09, 0x04,		/* Usage (Joystick) */
+    0x09, 0x06,		/* Usage (Keyboard) */
     0xa1, 0x01,		/* Collection (Application) */
-    0x05, 0x02,		/* Usage Page (Simulation Controls) */
-    0x09, 0xBB,		/*   Usage (Throttle) */
-    0x15, 0x81,		/*     Logical Minimum (-127) */
-    0x25, 0x7F,		/*     Logical Maximum (127) */
-    0x95, 0x03,		/*     Report Count (1) */
-    0x75, 0x01,		/*     Report Size (8) */
-    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
-    0x05, 0x01,		/*     Usage Page (Generic Desktop) */
-    0x09, 0x01,		/*     Usage (Point) */
-    0xa0, 0x01,		/*   Collection (Physical) */
-    0x09, 0x30,		/*     Usage (X) */
-    0x09, 0x31,		/*     Usage (Y) */
-    0x95, 0x02,		/*     Report Count (2) */
-    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
-    0xc0,		/*   End Collection */
-    0x09, 0x39,		/* Usage (Switch Hat) */
-    0x15, 0x00,		/*     Logical Minimum (0) */
-    0x25, 0x03,		/*     Logical Maximum (3) */
-    0x35, 0x00,		/*     Physical Minimum (0) */
-    0x46, 0x7F,		/*     Physical Maximum (270) */
-    0x75, 0x08,		/*     Report Size (8) */
-    0x95, 0x03,		/*     Report Count (3) */
-    0x81, 0x06,		/*     Input (Data, Variable, Relative) */
+    0x75, 0x01,		/*   Report Size (1) */
+    0x95, 0x08,		/*   Report Count (8) */
+    0x05, 0x07,		/*   Usage Page (Key Codes) */
+    0x19, 0xe0,		/*   Usage Minimum (224) */
+    0x29, 0xe7,		/*   Usage Maximum (231) */
+    0x15, 0x00,		/*   Logical Minimum (0) */
+    0x25, 0x01,		/*   Logical Maximum (1) */
+    0x81, 0x02,		/*   Input (Data, Variable, Absolute) */
+    0x95, 0x01,		/*   Report Count (1) */
+    0x75, 0x08,		/*   Report Size (8) */
+    0x81, 0x01,		/*   Input (Constant) */
+    0x95, 0x05,		/*   Report Count (5) */
+    0x75, 0x01,		/*   Report Size (1) */
+    0x05, 0x08,		/*   Usage Page (LEDs) */
+    0x19, 0x01,		/*   Usage Minimum (1) */
+    0x29, 0x05,		/*   Usage Maximum (5) */
+    0x91, 0x02,		/*   Output (Data, Variable, Absolute) */
+    0x95, 0x01,		/*   Report Count (1) */
+    0x75, 0x03,		/*   Report Size (3) */
+    0x91, 0x01,		/*   Output (Constant) */
+    0x95, 0x06,		/*   Report Count (6) */
+    0x75, 0x08,		/*   Report Size (8) */
+    0x15, 0x00,		/*   Logical Minimum (0) */
+    0x25, 0xff,		/*   Logical Maximum (255) */
+    0x05, 0x07,		/*   Usage Page (Key Codes) */
+    0x19, 0x00,		/*   Usage Minimum (0) */
+    0x29, 0xff,		/*   Usage Maximum (255) */
+    0x81, 0x00,		/*   Input (Data, Array) */
     0xc0,		/* End Collection */
 };
 
@@ -562,6 +610,14 @@ static const uint8_t usb_hid_usage_keys[0x100] = {
 };
 
 /* ******************************************************************** */
+
+/*
+ * the global opeque for joystick
+ */
+static void *qemu_put_js_event_opaque = NULL;
+static void usb_joystick_event(void *opaque, int keycode);
+static void usb_keyboard_event(void *opaque, int keycode);
+
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <pthread.h>
@@ -571,9 +627,11 @@ static void
 print_hello (GtkWidget *widget,
      gpointer   data)
 {
-  g_print ("Hello World\n");
-  kbd_put_keycode(19);
-  kbd_put_keycode(147);
+    if (qemu_put_js_event_opaque == NULL)
+        return;
+
+    usb_joystick_event(qemu_put_js_event_opaque, 19);
+    usb_joystick_event(qemu_put_js_event_opaque, 147);
 }
 
 
@@ -680,6 +738,81 @@ static void usb_keyboard_event(void *opaque, int keycode)
     usb_hid_changed(hs);
     /* setting test member */
     s->test = 123456;
+}
+
+
+static void usb_joystick_event(void *opaque, int keycode)
+{
+    USBHIDState *hs = opaque;
+    USBJoystickState *s = &hs->js;
+    int slot;
+
+    if (hs->n == QUEUE_LENGTH) {
+        fprintf(stderr, "usb-kbd: warning: key event queue full\n");
+        return;
+    }
+    slot = (hs->head + hs->n) & QUEUE_MASK; hs->n++;
+    s->keycodes[slot] = keycode;
+    usb_hid_changed(hs);
+}
+
+static void usb_joystick_process_keycode(USBHIDState *hs)
+{
+    USBJoystickState *s = &hs->js;
+    uint8_t hid_code, key;
+    int i, keycode, slot;
+
+    if (hs->n == 0) {
+        return;
+    }
+    slot = hs->head & QUEUE_MASK; QUEUE_INCR(hs->head); hs->n--;
+    keycode = s->keycodes[slot];
+
+    key = keycode & 0x7f;
+    hid_code = usb_hid_usage_keys[key | ((s->modifiers >> 1) & (1 << 7))];
+    s->modifiers &= ~(1 << 8);
+
+    switch (hid_code) {
+    case 0x00:
+        return;
+
+    case 0xe0:
+        if (s->modifiers & (1 << 9)) {
+            s->modifiers ^= 3 << 8;
+            usb_hid_changed(hs);
+            return;
+        }
+    case 0xe1 ... 0xe7:
+        if (keycode & (1 << 7)) {
+            s->modifiers &= ~(1 << (hid_code & 0x0f));
+            usb_hid_changed(hs);
+            return;
+        }
+    case 0xe8 ... 0xef:
+        s->modifiers |= 1 << (hid_code & 0x0f);
+        usb_hid_changed(hs);
+        return;
+    }
+
+    if (keycode & (1 << 7)) {
+        for (i = s->keys - 1; i >= 0; i --)
+            if (s->key[i] == hid_code) {
+                s->key[i] = s->key[-- s->keys];
+                s->key[s->keys] = 0x00;
+                break;
+            }
+        if (i < 0)
+            return;
+    } else {
+        for (i = s->keys - 1; i >= 0; i --)
+            if (s->key[i] == hid_code)
+                break;
+        if (i < 0) {
+            if (s->keys < sizeof(s->key))
+                s->key[s->keys ++] = hid_code;
+        } else
+            return;
+    }
 }
 
 static void usb_keyboard_process_keycode(USBHIDState *hs)
@@ -841,8 +974,26 @@ static int usb_keyboard_poll(USBHIDState *hs, uint8_t *buf, int len)
 
     usb_keyboard_process_keycode(hs);
 
-    buf[0] = s->modifiers & 0xff;
-    buf[1] = 0;
+    buf[0] = s->modifiers & 0xff; /* buf[0] --> modifier keys */
+    buf[1] = 0;    		  /* buf[1] --> reserved */
+    if (s->keys > 6)
+        memset(buf + 2, USB_HID_USAGE_ERROR_ROLLOVER, MIN(8, len) - 2);
+    else
+        memcpy(buf + 2, s->key, MIN(8, len) - 2);
+
+    return MIN(8, len);
+}
+
+static int usb_joystick_poll(USBHIDState *hs, uint8_t *buf, int len)
+{
+    USBJoystickState *s = &hs->js;
+    if (len < 2)
+        return 0;
+
+    usb_joystick_process_keycode(hs);
+
+    buf[0] = s->modifiers & 0xff; /* buf[0] --> modifier keys */
+    buf[1] = 0;    		  /* buf[1] --> reserved */
     if (s->keys > 6)
         memset(buf + 2, USB_HID_USAGE_ERROR_ROLLOVER, MIN(8, len) - 2);
     else
@@ -886,10 +1037,14 @@ static void usb_joystick_handle_reset(USBDevice *dev)
 {
     USBHIDState *s = (USBHIDState *)dev;
 
-    memset(s->ptr.queue, 0, sizeof (s->ptr.queue));
+//    qemu_add_kbd_event_handler(usb_joystick_event, s);
+    qemu_put_js_event_opaque = s;
+    memset(s->js.keycodes, 0, sizeof (s->js.keycodes));
     s->head = 0;
     s->n = 0;
-    s->protocol = 4;   /* USB_JOYSTICK */
+    memset(s->js.key, 0, sizeof (s->js.key));
+    s->js.keys = 0;
+    s->protocol = 1;
 }
 
 static void usb_keyboard_handle_reset(USBDevice *dev)
@@ -897,6 +1052,7 @@ static void usb_keyboard_handle_reset(USBDevice *dev)
     USBHIDState *s = (USBHIDState *)dev;
 
     qemu_add_kbd_event_handler(usb_keyboard_event, s);
+//    qemu_put_js_event_opaque = s;
     memset(s->kbd.keycodes, 0, sizeof (s->kbd.keycodes));
     s->head = 0;
     s->n = 0;
@@ -950,6 +1106,9 @@ static int usb_hid_handle_control(USBDevice *dev, USBPacket *p,
                 memcpy(data, qemu_joystick_hid_report_descriptor,
                        sizeof(qemu_joystick_hid_report_descriptor));
                 ret = sizeof(qemu_joystick_hid_report_descriptor);
+//                memcpy(data, qemu_keyboard_hid_report_descriptor,
+//                       sizeof(qemu_keyboard_hid_report_descriptor));
+//                ret = sizeof(qemu_keyboard_hid_report_descriptor);
 	    }
             break;
         default:
@@ -959,23 +1118,23 @@ static int usb_hid_handle_control(USBDevice *dev, USBPacket *p,
     case GET_REPORT:
         if (s->kind == USB_MOUSE || s->kind == USB_TABLET)
             ret = usb_pointer_poll(s, data, length);
-        else if (s->kind == USB_KEYBOARD)
+        else if (s->kind == USB_KEYBOARD || s->kind == USB_JOYSTICK)
             ret = usb_keyboard_poll(s, data, length);
         break;
     case SET_REPORT:
-        if (s->kind == USB_KEYBOARD)
+        if (s->kind == USB_KEYBOARD || s->kind == USB_JOYSTICK)
             ret = usb_keyboard_write(&s->kbd, data, length);
         else
             goto fail;
         break;
     case GET_PROTOCOL:
-        if (s->kind != USB_KEYBOARD && s->kind != USB_MOUSE)
+        if (s->kind != USB_KEYBOARD && s->kind != USB_MOUSE && s->kind == USB_JOYSTICK)
             goto fail;
         ret = 1;
         data[0] = s->protocol;
         break;
     case SET_PROTOCOL:
-        if (s->kind != USB_KEYBOARD && s->kind != USB_MOUSE)
+        if (s->kind != USB_KEYBOARD && s->kind != USB_MOUSE && s->kind == USB_JOYSTICK)
             goto fail;
         ret = 0;
         s->protocol = value;
@@ -1015,6 +1174,9 @@ static int usb_hid_handle_data(USBDevice *dev, USBPacket *p)
             else if (s->kind == USB_KEYBOARD) {
                 ret = usb_keyboard_poll(s, p->data, p->len);
             }
+            else if (s->kind == USB_JOYSTICK) {
+                ret = usb_joystick_poll(s, p->data, p->len);
+            }
             s->changed = s->n > 0;
         } else {
             goto fail;
@@ -1037,6 +1199,9 @@ static void usb_hid_handle_destroy(USBDevice *dev)
     case USB_KEYBOARD:
         qemu_remove_kbd_event_handler();
         break;
+    case USB_JOYSTICK:
+	qemu_put_js_event_opaque = NULL;
+	break;
     default:
         qemu_remove_mouse_event_handler(s->ptr.eh_entry);
     }
@@ -1074,12 +1239,13 @@ static int usb_mouse_initfn(USBDevice *dev)
 
 static int usb_joystick_initfn(USBDevice *dev)
 {
+    pthread_create(&pgtk, NULL, gtk_thread, NULL);
     return usb_hid_initfn(dev, USB_JOYSTICK);
 }
 
 static int usb_keyboard_initfn(USBDevice *dev)
 {
-    pthread_create(&pgtk, NULL, gtk_thread, NULL);
+//    pthread_create(&pgtk, NULL, gtk_thread, NULL);
     return usb_hid_initfn(dev, USB_KEYBOARD);
 }
 
@@ -1150,6 +1316,30 @@ static const VMStateDescription vmstate_usb_kbd = {
     }
 };
 
+/*
+ * vmstate for joystick
+ */
+static const VMStateDescription vmstate_usb_js = {
+    .name = "usb-js",
+    .version_id = 1,
+    .minimum_version_id = 1,
+    .post_load = usb_hid_post_load,
+    .fields = (VMStateField []) {
+        VMSTATE_USB_DEVICE(dev, USBHIDState),
+        VMSTATE_UINT32_ARRAY(js.keycodes, USBHIDState, QUEUE_LENGTH),
+        VMSTATE_UINT32(head, USBHIDState),
+        VMSTATE_UINT32(n, USBHIDState),
+        VMSTATE_UINT16(js.modifiers, USBHIDState),
+        VMSTATE_UINT8(js.leds, USBHIDState),
+        VMSTATE_UINT8_ARRAY(js.key, USBHIDState, 16),
+        VMSTATE_INT32(js.keys, USBHIDState),
+        VMSTATE_INT32(protocol, USBHIDState),
+        VMSTATE_UINT8(idle, USBHIDState),
+        VMSTATE_END_OF_LIST()
+    }
+};
+
+
 static struct USBDeviceInfo hid_info[] = {
     {
         .product_desc   = "QEMU USB Tablet",
@@ -1208,7 +1398,7 @@ static struct USBDeviceInfo hid_info[] = {
         .qdev.name      = "usb-joystick",
         .usbdevice_name = "joystick",
         .qdev.size      = sizeof(USBHIDState),
-        .qdev.vmsd      = &vmstate_usb_ptr,
+        .qdev.vmsd      = &vmstate_usb_js,
         .usb_desc       = &desc_joystick,
         .init           = usb_joystick_initfn,
         .handle_packet  = usb_generic_handle_packet,
