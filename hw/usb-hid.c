@@ -168,7 +168,7 @@ static const USBDescIface desc_iface_joystick = {
     .bNumEndpoints                 = 1,
     .bInterfaceClass               = USB_CLASS_HID,
     .bInterfaceSubClass            = 0x01, /* boot */
-    .bInterfaceProtocol            = 0x01,
+    .bInterfaceProtocol            = 0x04,
     .ndesc                         = 1,
     .descs = (USBDescOther[]) {
         {
@@ -427,25 +427,25 @@ static const uint8_t qemu_mouse_hid_report_descriptor[] = {
     0xc0,		/* End Collection */
 };
 
-//static const uint8_t qemu_joystick_hid_report_descriptor[] = {
-//    0x05, 0x01,		/* Usage Page (Generic Desktop) */
-//    0x09, 0x04,		/* Usage (Joystick) */
-//    0xa1, 0x01,		/* Collection (Application) */
-//    0x05, 0x02,		/* Usage Page (Simulation Controls) */
-//    0x09, 0xBB,		/*   Usage (Throttle) */
-//    0x15, 0x81,		/*     Logical Minimum (-127) */
-//    0x25, 0x7F,		/*     Logical Maximum (127) */
-//    0x95, 0x03,		/*     Report Count (1) */
-//    0x75, 0x01,		/*     Report Size (8) */
-//    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
-//    0x05, 0x01,		/*     Usage Page (Generic Desktop) */
-//    0x09, 0x01,		/*     Usage (Point) */
-//    0xa0, 0x01,		/*   Collection (Physical) */
-//    0x09, 0x30,		/*     Usage (X) */
-//    0x09, 0x31,		/*     Usage (Y) */
-//    0x95, 0x02,		/*     Report Count (2) */
-//    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
-//    0xc0,		/*   End Collection */
+static const uint8_t qemu_joystick_hid_report_descriptor[] = {
+    0x05, 0x01,		/* Usage Page (Generic Desktop) */
+    0x09, 0x04,		/* Usage (Joystick) */
+    0xa1, 0x01,		/* Collection (Application) */
+    0x05, 0x02,		/* Usage Page (Simulation Controls) */
+    0x09, 0xBB,		/*   Usage (Throttle) */
+    0x15, 0x81,		/*     Logical Minimum (-127) */
+    0x25, 0x7F,		/*     Logical Maximum (127) */
+    0x95, 0x03,		/*     Report Count (1) */
+    0x75, 0x01,		/*     Report Size (8) */
+    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
+    0x05, 0x01,		/*     Usage Page (Generic Desktop) */
+    0x09, 0x01,		/*     Usage (Point) */
+    0xa0, 0x01,		/*   Collection (Physical) */
+    0x09, 0x30,		/*     Usage (X) */
+    0x09, 0x31,		/*     Usage (Y) */
+    0x95, 0x02,		/*     Report Count (2) */
+    0x81, 0x02,		/*     Input (Data, Variable, Absolute) */
+    0xc0,		/*   End Collection */
 //    0x09, 0x39,		/* Usage (Switch Hat) */
 //    0x15, 0x00,		/*     Logical Minimum (0) */
 //    0x25, 0x03,		/*     Logical Maximum (3) */
@@ -454,43 +454,108 @@ static const uint8_t qemu_mouse_hid_report_descriptor[] = {
 //    0x75, 0x08,		/*     Report Size (8) */
 //    0x95, 0x03,		/*     Report Count (3) */
 //    0x81, 0x06,		/*     Input (Data, Variable, Relative) */
-//    0xc0,		/* End Collection */
-//};
 
-static const uint8_t qemu_joystick_hid_report_descriptor[] = {
-    0x05, 0x01,		/* Usage Page (Generic Desktop) */
-    0x09, 0x06,		/* Usage (Keyboard) */
-    0xa1, 0x01,		/* Collection (Application) */
-    0x75, 0x01,		/*   Report Size (1) */
-    0x95, 0x08,		/*   Report Count (8) */
-    0x05, 0x07,		/*   Usage Page (Key Codes) */
-    0x19, 0xe0,		/*   Usage Minimum (224) */
-    0x29, 0xe7,		/*   Usage Maximum (231) */
-    0x15, 0x00,		/*   Logical Minimum (0) */
-    0x25, 0x01,		/*   Logical Maximum (1) */
-    0x81, 0x02,		/*   Input (Data, Variable, Absolute) */
-    0x95, 0x01,		/*   Report Count (1) */
-    0x75, 0x08,		/*   Report Size (8) */
-    0x81, 0x01,		/*   Input (Constant) */
-    0x95, 0x05,		/*   Report Count (5) */
-    0x75, 0x01,		/*   Report Size (1) */
-    0x05, 0x08,		/*   Usage Page (LEDs) */
-    0x19, 0x01,		/*   Usage Minimum (1) */
-    0x29, 0x05,		/*   Usage Maximum (5) */
-    0x91, 0x02,		/*   Output (Data, Variable, Absolute) */
-    0x95, 0x01,		/*   Report Count (1) */
-    0x75, 0x03,		/*   Report Size (3) */
-    0x91, 0x01,		/*   Output (Constant) */
-    0x95, 0x06,		/*   Report Count (6) */
-    0x75, 0x08,		/*   Report Size (8) */
-    0x15, 0x00,		/*   Logical Minimum (0) */
-    0x25, 0xff,		/*   Logical Maximum (255) */
-    0x05, 0x07,		/*   Usage Page (Key Codes) */
-    0x19, 0x00,		/*   Usage Minimum (0) */
-    0x29, 0xff,		/*   Usage Maximum (255) */
-    0x81, 0x00,		/*   Input (Data, Array) */
+    0x09, 0x39,                    //   USAGE (Hat switch)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+    0x25, 0x03,                    //   LOGICAL_MAXIMUM (3)
+    0x35, 0x00,                    //   PHYSICAL_MINIMUM (0)
+    0x46, 0x7F,              //   PHYSICAL_MAXIMUM (270)
+//    0x65, 0x14,                    //   UNIT (Eng Rot:Angular Pos)
+    0x75, 0x08,                    //   REPORT_SIZE (4)
+    0x95, 0x01,                    //   REPORT_COUNT (1)
+    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+//    0x05, 0x09,                    //   USAGE_PAGE (Button)
+//    0x19, 0x01,                    //   USAGE_MINIMUM (Button 1)
+//    0x29, 0x04,                    //   USAGE_MAXIMUM (Button 4)
+//    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+//    0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
+//    0x75, 0x01,                    //   REPORT_SIZE (1)
+//    0x95, 0x04,                    //   REPORT_COUNT (4)
+//    0x55, 0x00,                    //   UNIT_EXPONENT (0)
+//    0x65, 0x00,                    //   UNIT (None)
+//    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
     0xc0,		/* End Collection */
 };
+
+/*
+ * generated by hid descriptor tool
+ */
+//static const uint8_t qemu_joystick_hid_report_descriptor[] = {
+//    0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
+//    0x15, 0x00,                    // LOGICAL_MINIMUM (0)
+//    0x09, 0x04,                    // USAGE (Joystick)
+//    0xa1, 0x01,                    // COLLECTION (Application)
+//    0x05, 0x02,                    //   USAGE_PAGE (Simulation Controls)
+//    0x09, 0xbb,                    //   USAGE (Throttle)
+//    0x15, 0x81,                    //   LOGICAL_MINIMUM (-127)
+//    0x25, 0x7f,                    //   LOGICAL_MAXIMUM (127)
+//    0x75, 0x08,                    //   REPORT_SIZE (8)
+//    0x95, 0x01,                    //   REPORT_COUNT (1)
+//    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+//    0x05, 0x01,                    //   USAGE_PAGE (Generic Desktop)
+//    0x09, 0x01,                    //   USAGE (Pointer)
+//    0xa1, 0x00,                    //   COLLECTION (Physical)
+//    0x09, 0x30,                    //     USAGE (X)
+//    0x09, 0x31,                    //     USAGE (Y)
+//    0x95, 0x02,                    //     REPORT_COUNT (2)
+//    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
+//    0xc0,                          //   END_COLLECTION
+//    0x09, 0x39,                    //   USAGE (Hat switch)
+//    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+//    0x25, 0x03,                    //   LOGICAL_MAXIMUM (3)
+//    0x35, 0x00,                    //   PHYSICAL_MINIMUM (0)
+//    0x46, 0x0e, 0x01,              //   PHYSICAL_MAXIMUM (270)
+//    0x65, 0x14,                    //   UNIT (Eng Rot:Angular Pos)
+//    0x75, 0x04,                    //   REPORT_SIZE (4)
+//    0x95, 0x01,                    //   REPORT_COUNT (1)
+//    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+//    0x05, 0x09,                    //   USAGE_PAGE (Button)
+//    0x19, 0x01,                    //   USAGE_MINIMUM (Button 1)
+//    0x29, 0x04,                    //   USAGE_MAXIMUM (Button 4)
+//    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+//    0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
+//    0x75, 0x01,                    //   REPORT_SIZE (1)
+//    0x95, 0x04,                    //   REPORT_COUNT (4)
+//    0x55, 0x00,                    //   UNIT_EXPONENT (0)
+//    0x65, 0x00,                    //   UNIT (None)
+//    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+//    0xc0                           // END_COLLECTION
+//};
+
+//static const uint8_t qemu_joystick_hid_report_descriptor[] = {
+//    0x05, 0x01,		/* Usage Page (Generic Desktop) */
+//    0x09, 0x06,		/* Usage (Keyboard) */
+//    0xa1, 0x01,		/* Collection (Application) */
+//    0x75, 0x01,		/*   Report Size (1) */
+//    0x95, 0x08,		/*   Report Count (8) */
+//    0x05, 0x07,		/*   Usage Page (Key Codes) */
+//    0x19, 0xe0,		/*   Usage Minimum (224) */
+//    0x29, 0xe7,		/*   Usage Maximum (231) */
+//    0x15, 0x00,		/*   Logical Minimum (0) */
+//    0x25, 0x01,		/*   Logical Maximum (1) */
+//    0x81, 0x02,		/*   Input (Data, Variable, Absolute) */
+//    0x95, 0x01,		/*   Report Count (1) */
+//    0x75, 0x08,		/*   Report Size (8) */
+//    0x81, 0x01,		/*   Input (Constant) */
+//    0x95, 0x05,		/*   Report Count (5) */
+//    0x75, 0x01,		/*   Report Size (1) */
+//    0x05, 0x08,		/*   Usage Page (LEDs) */
+//    0x19, 0x01,		/*   Usage Minimum (1) */
+//    0x29, 0x05,		/*   Usage Maximum (5) */
+//    0x91, 0x02,		/*   Output (Data, Variable, Absolute) */
+//    0x95, 0x01,		/*   Report Count (1) */
+//    0x75, 0x03,		/*   Report Size (3) */
+//    0x91, 0x01,		/*   Output (Constant) */
+//    0x95, 0x06,		/*   Report Count (6) */
+//    0x75, 0x08,		/*   Report Size (8) */
+//    0x15, 0x00,		/*   Logical Minimum (0) */
+//    0x25, 0xff,		/*   Logical Maximum (255) */
+//    0x05, 0x07,		/*   Usage Page (Key Codes) */
+//    0x19, 0x00,		/*   Usage Minimum (0) */
+//    0x29, 0xff,		/*   Usage Maximum (255) */
+//    0x81, 0x00,		/*   Input (Data, Array) */
+//    0xc0,		/* End Collection */
+//};
 
 static const uint8_t qemu_tablet_hid_report_descriptor[] = {
     0x05, 0x01,		/* Usage Page (Generic Desktop) */
