@@ -3467,8 +3467,9 @@ static int pci_rtl8139_init(PCIDevice *dev)
         cpu_register_io_memory(rtl8139_mmio_read, rtl8139_mmio_write, s,
                                DEVICE_LITTLE_ENDIAN);
 
-    pci_register_bar(&s->dev, 0, 0x100,
-                           PCI_BASE_ADDRESS_SPACE_IO,  rtl8139_ioport_map);
+    /* we use pci memory io */
+//    pci_register_bar(&s->dev, 0, 0x100,
+//                           PCI_BASE_ADDRESS_SPACE_IO,  rtl8139_ioport_map);
 
     pci_register_bar_simple(&s->dev, 1, 0x100, 0, s->rtl8139_mmio_io_addr);
 

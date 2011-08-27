@@ -15,3 +15,5 @@ CONFIG_IDE_CORE=y
 CONFIG_IDE_QDEV=y
 CONFIG_IDE_PCI=y
 CONFIG_AHCI=y
+# for our test pci device
+CONFIG_LED_PCI=y

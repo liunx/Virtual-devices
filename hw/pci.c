@@ -1528,6 +1528,7 @@ static const char * const pci_nic_models[] = {
     "e1000",
     "pcnet",
     "virtio",
+    "pci-led",
     NULL
 };
 
@@ -1540,6 +1541,7 @@ static const char * const pci_nic_names[] = {
     "e1000",
     "pcnet",
     "virtio-net-pci",
+    "pci-led",
     NULL
 };
 
