@@ -83,6 +83,7 @@ static void pl061_update(pl061_state *s)
 
 static uint32_t pl061_read(void *opaque, target_phys_addr_t offset)
 {
+//    fprintf(stdout, "pl061_read: opaque = 0x%lx\n", (unsigned long)opaque);
     pl061_state *s = (pl061_state *)opaque;
 
     if (offset >= 0xfd0 && offset < 0x1000) {
@@ -93,6 +94,7 @@ static uint32_t pl061_read(void *opaque, target_phys_addr_t offset)
     }
     switch (offset) {
     case 0x400: /* Direction */
+//        fprintf(stdout, "pl061_read offset: 0x%x, value: 0x%x\n", offset, s->dir);
         return s->dir;
     case 0x404: /* Interrupt sense */
         return s->isense;
@@ -140,6 +142,8 @@ static void pl061_write(void *opaque, target_phys_addr_t offset,
     pl061_state *s = (pl061_state *)opaque;
     uint8_t mask;
 
+//    fprintf(stdout, "pl061_write: opaque = 0x%lx\n", (unsigned long)opaque);
+//    fprintf(stdout, "pl061_write offset: 0x%x, value: 0x%x\n", offset, value);
     if (offset < 0x400) {
         mask = (offset >> 2) & s->dir;
         s->data = (s->data & ~mask) | (value & mask);
@@ -149,6 +153,7 @@ static void pl061_write(void *opaque, target_phys_addr_t offset,
     switch (offset) {
     case 0x400: /* Direction */
         s->dir = value;
+//        fprintf(stdout, "pl061_write: s->dir = 0x%x\n", s->dir);
         break;
     case 0x404: /* Interrupt sense */
         s->isense = value;
@@ -318,6 +323,11 @@ static int pl061_init_luminary(SysBusDevice *dev)
 
 static int pl061_init_arm(SysBusDevice *dev)
 {
+    /*
+     * keep the dev pointer,here, we can 
+     * read/write to the device via this 
+     * interface.
+     */
     return pl061_init(dev, pl061_id);
 }
 

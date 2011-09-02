@@ -17,6 +17,7 @@
 #include "usb-ohci.h"
 #include "boards.h"
 #include "blockdev.h"
+#include "flash.h"
 
 /* Primary interrupt controller.  */
 
@@ -169,6 +170,13 @@ static int vpb_sic_init(SysBusDevice *dev)
 
 static struct arm_boot_info versatile_binfo;
 
+#define VERSATILE_RAM_ADDR		0
+#define VERSATILE_RAM_SIZE		(128 * 1024 * 1024)
+#define VERSATILE_FLASH_ADDR		0x34000000
+#define VERSATILE_FLASH_SIZE		(64 * 1024 * 1024)
+#define VERSATILE_FLASH_SECT_SIZE	(256 * 1024)
+
+
 static void versatile_init(ram_addr_t ram_size,
                      const char *boot_device,
                      const char *kernel_filename, const char *kernel_cmdline,
@@ -185,6 +193,9 @@ static void versatile_init(ram_addr_t ram_size,
     NICInfo *nd;
     int n;
     int done_smc = 0;
+    // vars for flash
+    int fl_idx;
+    DriveInfo *dinfo;
 
     if (!cpu_model)
         cpu_model = "arm926";
@@ -193,10 +204,32 @@ static void versatile_init(ram_addr_t ram_size,
         fprintf(stderr, "Unable to find CPU definition\n");
         exit(1);
     }
-    ram_offset = qemu_ram_alloc(NULL, "versatile.ram", ram_size);
+//    ram_offset = qemu_ram_alloc(NULL, "versatile.ram", ram_size);
     /* ??? RAM should repeat to fill physical memory space.  */
     /* SDRAM at address zero.  */
-    cpu_register_physical_memory(0, ram_size, ram_offset | IO_MEM_RAM);
+//    cpu_register_physical_memory(0, ram_size, ram_offset | IO_MEM_RAM);
+    cpu_register_physical_memory(VERSATILE_RAM_ADDR, 
+		    VERSATILE_RAM_SIZE,
+		    qemu_ram_alloc(NULL, "versatile.ram", VERSATILE_RAM_SIZE) | IO_MEM_RAM);
+
+    fl_idx = 0;
+    dinfo = drive_get(IF_PFLASH, 0, fl_idx);
+//    if (!dinfo) {
+//        fprintf(stderr, "A flash image must be given with the "
+//                "'pflash' parameter\n");
+//        exit(1);
+//    }
+
+    if (dinfo) {
+    	if (!pflash_cfi01_register(VERSATILE_FLASH_ADDR, qemu_ram_alloc(NULL, "flash.rom",
+                                                                    VERSATILE_FLASH_SIZE),
+                               dinfo->bdrv, VERSATILE_FLASH_SECT_SIZE,
+                               VERSATILE_FLASH_SIZE / VERSATILE_FLASH_SECT_SIZE,
+                               4, 0, 0, 0, 0, 0)) {
+            fprintf(stderr, "qemu: Error registering flash memory.\n");
+            exit(1);
+    	}
+    }
 
     arm_sysctl_init(0x10000000, 0x41007004, 0x02000000);
     cpu_pic = arm_pic_init_cpu(env);
@@ -257,6 +290,12 @@ static void versatile_init(ram_addr_t ram_size,
 
     /* Add PL031 Real Time Clock. */
     sysbus_create_simple("pl031", 0x101e8000, pic[10]);
+    
+    /* Add PL061 GPIOs */
+    sysbus_create_simple("pl061", 0x101e4000, pic[20]);
+    sysbus_create_simple("pl061", 0x101e5000, pic[21]);
+    sysbus_create_simple("pl061", 0x101e6000, pic[22]);
+    sysbus_create_simple("pl061", 0x101e7000, pic[23]);
 
     /* Memory map for Versatile/PB:  */
     /* 0x10000000 System registers.  */
@@ -294,7 +333,8 @@ static void versatile_init(ram_addr_t ram_size,
     /*  0x101f3000 UART2.  */
     /* 0x101f4000 SSPI.  */
 
-    versatile_binfo.ram_size = ram_size;
+//    versatile_binfo.ram_size = ram_size;
+    versatile_binfo.ram_size = VERSATILE_RAM_SIZE;
     versatile_binfo.kernel_filename = kernel_filename;
     versatile_binfo.kernel_cmdline = kernel_cmdline;
     versatile_binfo.initrd_filename = initrd_filename;
