@@ -292,10 +292,12 @@ static void versatile_init(ram_addr_t ram_size,
     sysbus_create_simple("pl031", 0x101e8000, pic[10]);
     
     /* Add PL061 GPIOs */
-    sysbus_create_simple("pl061", 0x101e4000, pic[20]);
-    sysbus_create_simple("pl061", 0x101e5000, pic[21]);
-    sysbus_create_simple("pl061", 0x101e6000, pic[22]);
-    sysbus_create_simple("pl061", 0x101e7000, pic[23]);
+    sysbus_create_simple("pl061", 0x101e4000, pic[6]);
+    sysbus_create_simple("pl061", 0x101e5000, pic[7]);
+    sysbus_create_simple("pl061", 0x101e6000, pic[8]);
+    sysbus_create_simple("pl061", 0x101e7000, pic[9]);
+    /* Add SP850 watchdog */
+    sysbus_create_simple("sp805", 0x101e1000, pic[0]);
 
     /* Memory map for Versatile/PB:  */
     /* 0x10000000 System registers.  */

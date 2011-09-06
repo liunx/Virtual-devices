@@ -40,6 +40,7 @@ typedef struct {
     uint8_t im;
     uint8_t istate;
     uint8_t afsel;
+    /* for TI Stellaris extention */
     uint8_t dr2r;
     uint8_t dr4r;
     uint8_t dr8r;
